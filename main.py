@@ -26,9 +26,7 @@ def read_incidence_matrix(filename: str) -> list[list[int]]:
     :param str filename: path to file
     :returns list[list[int]]: the incidence matrix of a given graph
     >>> read_incidence_matrix("input.dot")
-    [[-1, -1, 1, 0, 1, 0],
- [1, 0, -1, -1, 0, 1],
- [0, 1, 0, 1, -1, -1]]
+    [[-1, -1, 1, 0, 1, 0], [1, 0, -1, -1, 0, 1], [0, 1, 0, 1, -1, -1]]
     """
     edges = read_edges(filename)
     vertices = sorted(set([u for u, _ in edges] + [v for _, v in edges]))
@@ -46,9 +44,7 @@ def read_adjacency_matrix(filename: str) -> list[list[int]]:
     :param str filename: path to file
     :returns list[list[int]]: the adjacency matrix of a given graph
     >>> read_adjacency_matrix("input.dot")
-    [[0, 1, 1],
- [1, 0, 1],
- [1, 1, 0]]
+    [[0, 1, 1], [1, 0, 1], [1, 1, 0]]
     """
     edges = read_edges(filename)
     vertices = sorted(set([u for u, _ in edges] + [v for _, v in edges]))
@@ -273,7 +269,7 @@ def find_cycles_adj_dict(graph, maxlen=10):
     """
     finds all the cycles in adjacency dictionary
     >>> find_cycles_adj_dict({0:[1,2],1:[0,2],2:[0,1]})
-    [[0, 1, 2], [0, 2, 1]]
+    [[0, 1], [0, 2, 1], [1, 2], [0, 2], [0, 1, 2]]
     """
     cycles = set()
     nodes = sorted(graph.keys())
@@ -302,7 +298,7 @@ def find_cycles_adj_matrix(matrix):
     """
     finds all the cycles in adjacency matrix
     >>> find_cycles_adj_matrix([[0,1,1],[1,0,1],[1,1,0]])
-    [[0, 1, 2], [0, 2, 1]]
+    [[0, 1], [0, 2, 1], [1, 2], [0, 2], [0, 1, 2]]
     """
     n = len(matrix)
     graph = {i: [] for i in range(n)}
@@ -316,7 +312,7 @@ def find_cycles_inc_matrix(matrix):
     """
     finds all the cycles in incedent matrix
     >>> find_cycles_inc_matrix([[-1,-1,1,0,1,0], [1,0,-1,-1,0,1], [0,1,0,1,-1,-1]])
-    [[0, 1, 2], [0, 2, 1]]
+    [[0, 1], [0, 2, 1], [1, 2], [0, 2], [0, 1, 2]]
     """
     n = len(matrix)
     m = len(matrix[0])
@@ -335,7 +331,6 @@ def find_cycles_inc_matrix(matrix):
 def read_incidence_from_adj_dict(graph):
     """
     Creates incidency matrix form adjacency graph
-    >>> read_incidence_from_adj_dict(read_adjacency_dict("input.dot"))
     """
     edges = []
     for u in graph:
@@ -361,18 +356,34 @@ times_matrix = []
 times_inc = []
 
 
-def random_graph(n, p=0.2):
+def path_graph(n: int) -> dict[int, list[int]]:
+    """
+    Acycled graph.
+    """
     graph = {i: [] for i in range(n)}
-    for i in range(n):
-        for j in range(n):
-            if random.random() < p:
-                graph[i].append(j)
+    for i in range(n - 1):
+        graph[i].append(i + 1)
+    return graph
+def cycle_graph(n_in: int) -> dict[int, list[int]]:
+    """
+    Cycled graph
+    """
+    graph = {i: [] for i in range(n)}
+    for i in range(n_in - 1):
+        graph[i].append(i + 1)
+    graph[n_in - 1].append(0)
     return graph
 
 
-for n in [5, 10, 20, 40, 60, 80, 100]:
-    g = random_graph(n)
 
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(verbose=True)
+
+for n in [5, 10, 20, 40, 60, 80, 100]:
+    g = path_graph(n)
     adj_dict = g
     adj_matrix = [[1 if j in g[i] else 0 for j in range(n)] for i in range(n)]
     inc_matrix = read_incidence_from_adj_dict(g)
@@ -383,15 +394,35 @@ for n in [5, 10, 20, 40, 60, 80, 100]:
     times_matrix.append( measure(find_cycles_adj_matrix, adj_matrix) )
     times_inc.append( measure(find_cycles_inc_matrix, inc_matrix) )
 
+
 plt.plot(sizes, times_dict, label="adj dict")
 plt.plot(sizes, times_matrix, label="adj matrix")
 plt.plot(sizes, times_inc, label="inc matrix")
+plt.xlabel("Number of vertices")
+plt.ylabel("Time (seconds)")
 plt.legend()
 plt.show()
+sizes = []
+times_dict = []
+times_matrix = []
+times_inc = []
+for m in [5, 10, 20, 40, 60, 80, 100]:
+    v = cycle_graph(m)
+    adj_dict_2 = v
+    adj_matrix = [[1 if j in v[i] else 0 for j in range(m)] for i in range(m)]
+    inc_matrix = read_incidence_from_adj_dict(v)
+
+    sizes.append(m)
+
+    times_dict.append( measure(find_cycles_adj_dict, adj_dict_2) )
+    times_matrix.append( measure(find_cycles_adj_matrix, adj_matrix) )
+    times_inc.append( measure(find_cycles_inc_matrix, inc_matrix) )
 
 
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod(verbose=True)
+plt.plot(sizes, times_dict, label="adj dict")
+plt.plot(sizes, times_matrix, label="adj matrix")
+plt.plot(sizes, times_inc, label="inc matrix")
+plt.xlabel("Number of vertices")
+plt.ylabel("Time (seconds)")
+plt.legend()
+plt.show()
