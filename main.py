@@ -1,9 +1,9 @@
 """
 Lab 2 template
 """
-import random
 import time
 import matplotlib.pyplot as plt
+
 def read_edges(filename):
     """
     additional function to read the graph's edges
@@ -328,6 +328,7 @@ def find_cycles_inc_matrix(matrix):
         if src is not None and dst is not None:
             graph[src].append(dst)
     return find_cycles_adj_dict(graph)
+
 def read_incidence_from_adj_dict(graph):
     """
     Creates incidency matrix form adjacency graph
@@ -364,32 +365,21 @@ def path_graph(n: int) -> dict[int, list[int]]:
     for i in range(n - 1):
         graph[i].append(i + 1)
     return graph
+
 def cycle_graph(n_in: int) -> dict[int, list[int]]:
-    """
-    Cycled graph
-    """
-    graph = {i: [] for i in range(n)}
+    graph = {i: [] for i in range(n_in)}
     for i in range(n_in - 1):
         graph[i].append(i + 1)
     graph[n_in - 1].append(0)
     return graph
 
 
-
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod(verbose=True)
-
 for n in [5, 10, 20, 40, 60, 80, 100]:
     g = path_graph(n)
     adj_dict = g
     adj_matrix = [[1 if j in g[i] else 0 for j in range(n)] for i in range(n)]
     inc_matrix = read_incidence_from_adj_dict(g)
-
     sizes.append(n)
-
     times_dict.append( measure(find_cycles_adj_dict, adj_dict) )
     times_matrix.append( measure(find_cycles_adj_matrix, adj_matrix) )
     times_inc.append( measure(find_cycles_inc_matrix, inc_matrix) )
@@ -417,8 +407,6 @@ for m in [5, 10, 20, 40, 60, 80, 100]:
     times_dict.append( measure(find_cycles_adj_dict, adj_dict_2) )
     times_matrix.append( measure(find_cycles_adj_matrix, adj_matrix) )
     times_inc.append( measure(find_cycles_inc_matrix, inc_matrix) )
-
-
 plt.plot(sizes, times_dict, label="adj dict")
 plt.plot(sizes, times_matrix, label="adj matrix")
 plt.plot(sizes, times_inc, label="inc matrix")
@@ -426,3 +414,7 @@ plt.xlabel("Number of vertices")
 plt.ylabel("Time (seconds)")
 plt.legend()
 plt.show()
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(verbose=True)
